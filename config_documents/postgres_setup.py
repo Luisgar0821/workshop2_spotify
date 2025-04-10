@@ -85,6 +85,21 @@ def crear_tabla_spotify_data(conn):
     cur.close()
     print("Tabla 'spotify_data' verificada/creada.")
 
+def crear_tabla_spotify_artists_api(conn):
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS spotify_artists_api (
+            id SERIAL PRIMARY KEY,
+            artist_name TEXT,
+            artist_id TEXT,
+            followers INTEGER,
+            popularity INTEGER,
+            genres TEXT
+        );
+    """)
+    conn.commit()
+    cur.close()
+    print("Tabla 'spotify_artists_api' verificada/creada.")
 
 def insertar_datos_grammy_awards(conn, df):
     cur = conn.cursor()
@@ -144,6 +159,27 @@ def insertar_datos_spotify_data(conn,df):
             ))
         conn.commit()
         print("Datos insertados en 'spotify_data'.")
+    else:
+        print("Los datos ya están insertados. No se duplicaron registros.")
+    cur.close()
+
+def insertar_datos_spotify_artists_api(conn, df):
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM spotify_artists_api")
+    if cur.fetchone()[0] == 0:
+        for _, row in df.iterrows():
+            cur.execute("""
+                INSERT INTO spotify_artists_api (artist_name, artist_id, followers, popularity, genres)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (
+                row['artist_name'],
+                row['artist_id'],
+                int(row['followers']),
+                int(row['popularity']),
+                row['genres']
+            ))
+        conn.commit()
+        print("Datos insertados en 'spotify_artists_api'")
     else:
         print("Los datos ya están insertados. No se duplicaron registros.")
     cur.close()
